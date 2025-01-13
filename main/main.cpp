@@ -21,11 +21,9 @@
 #include "esp_log.h"
 #include "lvgl.h"
 #include "amoled_driver.h"
-#include "touch_driver.h"
 #include "i2c_driver.h"
 #include "power_driver.h"
 #include "demos/lv_demos.h"
-#include "tft_driver.h"
 #include "product_pins.h"
 
 
