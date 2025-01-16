@@ -25,6 +25,7 @@
 #include "power_driver.h"
 #include "demos/lv_demos.h"
 #include "product_pins.h"
+#include "lv_examples.h"
 
 
 static const char *TAG = "main";
@@ -89,9 +90,6 @@ static void lvgl_port_task(void *arg)
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
 }
-extern "C" {
-    void lvgl_demo_ui(lv_disp_t *disp);
-}
 
 extern "C" void app_main(void)
 {
@@ -127,6 +125,8 @@ extern "C" void app_main(void)
     disp_drv.flush_cb = lvgl_flush_cb;
     disp_drv.draw_buf = &disp_buf;
     disp_drv.full_refresh = DISPLAY_FULLRESH;
+    //disp_drv.sw_rotate = 1;
+    //disp_drv.rotated =  LV_DISP_ROT_90;
     lv_disp_drv_register(&disp_drv);
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
@@ -148,7 +148,8 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "Display LVGL");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_lock(-1)) {
-        lv_demo_stress();
+        //lv_demo_widgets();
+        lv_example_get_started_1();
         lvgl_unlock();
     }
     // tskIDLE_PRIORITY,
