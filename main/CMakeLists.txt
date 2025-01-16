@@ -4,4 +4,5 @@ idf_component_register(SRCS
     "amoled_driver.c"
     "initSequence.c"
     "power_driver.cpp"
+    "lvgl_config.c"
     INCLUDE_DIRS ".")
