@@ -1,3 +1,10 @@
+/**
+ * @file      lvgl_config.c
+ * @author    Brian Arnott (brian.arnott@gmail.com)
+ * @license   MIT
+ * @date      2025-01-16
+ *
+ */
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -9,6 +16,9 @@
 #include "product_pins.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "product_pins.h"
+#include "driver/gpio.h"
+#include "lvgl_config.h"
 
 #define LVGL_TICK_PERIOD_MS 2
 #define LVGL_TASK_MAX_DELAY_MS 500
@@ -17,6 +27,8 @@
 #define LVGL_TASK_PRIORITY 2
 
 static const char *TAG = "lvgl_config";
+
+static button_struct_t button_state;
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
@@ -71,6 +83,38 @@ static void lvgl_task(void *arg)
     }
 }
 
+static void button_task(void *arg)
+{
+    ESP_LOGI(TAG, "Starting button task");
+    uint32_t task_delay_ms = 10;
+    int level;
+    uint32_t x = 0;
+    while (1) {
+        level = gpio_get_level(GPIO_NUM_21);
+        ESP_LOGI(TAG, "Level1 is %d", level);
+        button_state.but1 = level;
+        level = gpio_get_level(GPIO_NUM_0);
+        ESP_LOGI(TAG, "Level2 is %d", level);
+        button_state.but2 = level;
+        gpio_set_level(GPIO_NUM_38, x%2);
+        x++;
+        vTaskDelay(task_delay_ms);
+    }
+}
+
+void button_config(void)
+{
+    // configure the "button 2" GPIO pin on the T Display S3 (GPIO 21) to be a input
+    // pin with a pulldown resistor.
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1 << BOARD_BUTTON2_PIN);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
+
 void lvgl_config(void)
 {
     lv_color_t *buf1 = (lv_color_t *)heap_caps_malloc(DISPLAY_BUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
@@ -115,3 +159,7 @@ void lvgl_go(void)
     xTaskCreate(lvgl_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
 }
 
+void button_go(void)
+{
+    xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+}

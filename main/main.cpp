@@ -57,6 +57,13 @@ extern "C" void app_main(void)
         lv_example_get_started_1();
         lvgl_unlock();
     }
+
+    ESP_LOGI(TAG, "Configure gpio");
+    button_config();
+
     ESP_LOGI(TAG, "Start LVGL thread");
     lvgl_go();
+
+    ESP_LOGI(TAG, "Start Button thread");
+    button_go();
 }

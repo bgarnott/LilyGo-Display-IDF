@@ -10,6 +10,15 @@
 extern "C" {
 #endif
 
+typedef struct button_struct {
+    int but1;
+    int but2;
+} button_struct_t;
+
+void button_config(void);
+
+void button_go(void);
+
 void lvgl_config(void);
 
 void lvgl_go(void);
