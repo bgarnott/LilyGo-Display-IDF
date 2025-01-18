@@ -26,6 +26,9 @@ void lvgl_go(void);
 bool lvgl_lock(int timeout_ms);
 
 void lvgl_unlock(void);
+
+button_struct_t get_button_state(void);
+
 #ifdef __cplusplus
 }
 #endif

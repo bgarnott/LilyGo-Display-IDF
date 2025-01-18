@@ -66,4 +66,14 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "Start Button thread");
     button_go();
+
+
+    button_struct_t button_state;
+    while(1)
+    {
+        button_state = get_button_state();
+        ESP_LOGI(TAG, "button 1 is: %d", button_state.but1);
+        ESP_LOGI(TAG, "button 2 is: %d", button_state.but2);
+        vTaskDelay(10);
+    }
 }

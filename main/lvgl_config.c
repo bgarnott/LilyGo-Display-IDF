@@ -91,10 +91,8 @@ static void button_task(void *arg)
     uint32_t x = 0;
     while (1) {
         level = gpio_get_level(GPIO_NUM_21);
-        ESP_LOGI(TAG, "Level1 is %d", level);
         button_state.but1 = level;
         level = gpio_get_level(GPIO_NUM_0);
-        ESP_LOGI(TAG, "Level2 is %d", level);
         button_state.but2 = level;
         gpio_set_level(GPIO_NUM_38, x%2);
         x++;
@@ -162,4 +160,9 @@ void lvgl_go(void)
 void button_go(void)
 {
     xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+}
+
+button_struct_t get_button_state()
+{
+    return button_state;
 }
