@@ -11,8 +11,8 @@ extern "C" {
 #endif
 
 typedef struct button_struct {
-    int but1;
-    int but2;
+    lv_indev_state_t    pressed;
+    uint32_t            key;
 } button_struct_t;
 
 void button_config(void);
@@ -27,7 +27,7 @@ bool lvgl_lock(int timeout_ms);
 
 void lvgl_unlock(void);
 
-button_struct_t get_button_state(void);
+void config_gui(void);
 
 #ifdef __cplusplus
 }
