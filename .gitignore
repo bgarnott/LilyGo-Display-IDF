@@ -1,11 +1,9 @@
 .pio
-.vscode
 test
 .travis.yml
 test
 assets
 build
-sdkconfig
 sdkconfig.old
 build
 dependencies.lock
@@ -13,3 +11,4 @@ managed_components
 sdkconfig.defaults
 idf_component.yml
 debug.log
+c_cpp_properties.json
