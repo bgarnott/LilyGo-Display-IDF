@@ -506,14 +506,14 @@ const lcd_cmd_t rm67162_cmd[RM67162_INIT_SEQUENCE_LENGHT] = {
     // {0x44, {0x01, 0x66},        0x02}, //Set_Tear_Scanline
     // {0x35, {0x00},        0x00}, //TE ON
     // {0x34, {0x00},        0x00}, //TE OFF
-    // {0x36, {0x00},        0x01}, //Scan Direction Control
     {0x3A00, {0x55}, 0x01}, // Interface Pixel Format 16bit/pixel
     // {0x3A, {0x66},        0x01}, //Interface Pixel Format    18bit/pixel
     // {0x3A, {0x77},        0x01}, //Interface Pixel Format    24bit/pixel
     {0x5100, {0x00}, 0x01}, // Write Display Brightness MAX_VAL=0XFF
-    {0x2900, {0x00}, 0x80}, // Display on
+    {0x2900, {0x00}, 0x01}, // Display on
     {0x5100, {AMOLED_DEFAULT_BRIGHTNESS}, 0x01}, // Write Display Brightness   MAX_VAL=0XFF
-    {0x3600, {0x60}, 0x01}, //
+    {0x3600, {0x00}, 0x01}, // Barno: Fixed this to be portrait mode. 
+    //{0x3600, {0x60}, 0x01}, // Barno: this is landscape mode (need to also swap width and height in lvgl driver init)
 };
 
 const lcd_cmd_t rm690b0_cmd[RM690B0_INIT_SEQUENCE_LENGHT] = {

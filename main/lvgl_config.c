@@ -162,11 +162,11 @@ void lvgl_config(void)
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = AMOLED_HEIGHT;
-    disp_drv.ver_res = AMOLED_WIDTH;
+    disp_drv.hor_res = AMOLED_WIDTH;
+    disp_drv.ver_res = AMOLED_HEIGHT;
     disp_drv.flush_cb = lvgl_flush_cb;
     disp_drv.draw_buf = &disp_buf;
-    disp_drv.full_refresh = DISPLAY_FULLRESH;
+    disp_drv.full_refresh = 0;
     //disp_drv.sw_rotate = 1;
     //disp_drv.rotated =  LV_DISP_ROT_90;
     lv_disp_drv_register(&disp_drv);
