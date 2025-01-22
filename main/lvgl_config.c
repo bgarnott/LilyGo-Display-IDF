@@ -44,6 +44,8 @@ static lv_obj_t *screen_array[4];
 
 static lv_group_t *group_array[4];
 
+static uint32_t current_screen = 0;
+
 static void lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
     uint32_t w = ( area->x2 - area->x1 + 1 );
@@ -105,12 +107,12 @@ static void button_task(void *arg)
         if (!but1)
         {
             button_state.pressed = LV_INDEV_STATE_PRESSED;
-            button_state.key = LV_KEY_NEXT;
+            button_state.key = LV_KEY_ENTER;
         }
         else if (!but2)
         {
             button_state.pressed = LV_INDEV_STATE_PRESSED;
-            button_state.key = LV_KEY_ENTER;
+            button_state.key = LV_KEY_NEXT;
         }
         else
         {
@@ -227,12 +229,27 @@ static void btn_next_screen_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        static int current_screen = 0;
         current_screen ++;
-        lv_scr_load_anim(screen_array[current_screen % 4],LV_SCR_LOAD_ANIM_MOVE_BOTTOM,500,0,0);
+        lv_scr_load_anim(screen_array[current_screen % 4],LV_SCR_LOAD_ANIM_MOVE_LEFT,300,0,0);
 
         // need to set focus to the first button on the new screen
-        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%4], -1);
+        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%4], 1);
+        lv_group_set_default(group_array[current_screen%4]);
+        lv_indev_set_group(indev_keypad, group_array[current_screen%4]);
+        lv_group_focus_obj(btn);
+    }
+}
+
+static void btn_previous_screen_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_screen --;
+        lv_scr_load_anim(screen_array[current_screen % 4],LV_SCR_LOAD_ANIM_MOVE_RIGHT,300,0,0);
+
+        // need to set focus to the first button on the new screen
+        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%4], 2);
         lv_group_set_default(group_array[current_screen%4]);
         lv_indev_set_group(indev_keypad, group_array[current_screen%4]);
         lv_group_focus_obj(btn);
@@ -244,32 +261,60 @@ void config_gui(void)
     // create 4 screens
     for (int i=0; i<4; i++)
     {
+        static lv_coord_t col_dsc[] = {75, 74, 75, LV_GRID_TEMPLATE_LAST};
+        static lv_coord_t row_dsc[] = {60, 60, 60, 60, 60, 60, 60, 60, LV_GRID_TEMPLATE_LAST};
+
         lv_obj_t * obj = lv_obj_create(NULL);
         lv_obj_set_size(obj, AMOLED_WIDTH, AMOLED_HEIGHT);
         screen_array[i] = obj;
 
+        /*Create a container with grid*/
+        lv_obj_set_style_grid_column_dsc_array(obj, col_dsc, 0);
+        lv_obj_set_style_grid_row_dsc_array(obj, row_dsc, 0);
+        lv_obj_center(obj);
+        lv_obj_set_layout(obj, LV_LAYOUT_GRID);
+
         lv_group_t * group = lv_group_create();
         group_array[i] = group;
 
-        lv_obj_t * btn = lv_btn_create(screen_array[i]);     /*Add a button the current screen*/
-        lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
-        lv_obj_set_size(btn, 120, 50);                          /*Set its size*/
-        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
-
-        lv_obj_t * label = lv_label_create(btn);          /*Add a label to the button*/
-        lv_label_set_text(label, "Button");                     /*Set the labels text*/
+        lv_obj_t * btn = lv_btn_create(screen_array[i]);
+        lv_obj_set_size(btn, 100, 50);
+        lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
+                             LV_GRID_ALIGN_STRETCH, 0, 1);
+        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
+        lv_obj_t * label = lv_label_create(btn);
+        lv_label_set_text(label, "Up");
         lv_obj_center(label);
         lv_group_add_obj(group_array[i], btn);
 
-        btn = lv_btn_create(screen_array[i]);     /*Add a button the current screen*/
-        lv_obj_set_pos(btn, 150, 100);                            /*Set its position*/
-        lv_obj_set_size(btn, 120, 50);                          /*Set its size*/
-        lv_obj_add_event_cb(btn, btn_next_screen_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
+        btn = lv_btn_create(screen_array[i]); 
+        lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 2, 1,
+                             LV_GRID_ALIGN_STRETCH, 3, 2);
+        lv_obj_add_event_cb(btn, btn_next_screen_cb, LV_EVENT_ALL, NULL);
         lv_group_add_obj(group_array[i], btn);
-
-        label = lv_label_create(btn);          /*Add a label to the button*/
-        lv_label_set_text(label, "Next screen");                     /*Set the labels text*/
+        label = lv_label_create(btn);
+        lv_label_set_text(label, "Next");
         lv_obj_center(label);
+
+        btn = lv_btn_create(screen_array[i]); 
+        lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 0, 1,
+                             LV_GRID_ALIGN_STRETCH, 3, 2);
+        lv_obj_add_event_cb(btn, btn_previous_screen_cb, LV_EVENT_ALL, NULL);
+        lv_group_add_obj(group_array[i], btn);
+        label = lv_label_create(btn);
+        lv_label_set_text(label, "Prev");
+        lv_obj_center(label);
+
+        btn = lv_btn_create(screen_array[i]);
+        lv_obj_set_size(btn, 100, 50);
+        lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
+                             LV_GRID_ALIGN_STRETCH, 7, 1);
+        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
+        label = lv_label_create(btn);
+        lv_label_set_text(label, "Down");
+        lv_obj_center(label);
+        lv_group_add_obj(group_array[i], btn);
+        
     }
 
     // set screen zero as the active screen.
