@@ -211,7 +211,6 @@ static void btn_event_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * btn = lv_event_get_target(e);
-    //ESP_LOGI(TAG, "callback called!!!!. Code is %d", code);
 
     if(code == LV_EVENT_PRESSING) {
         static uint8_t cnt = 0;

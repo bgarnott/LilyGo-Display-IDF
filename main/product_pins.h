@@ -96,8 +96,8 @@
 #define BOARD_DISP_RESET    (17)
 #define BOARD_DISP_TE       (9)
 
-#define BOARD_I2C_SDA       (3)
-#define BOARD_I2C_SCL       (2)
+#define BOARD_I2C_SDA       (43)
+#define BOARD_I2C_SCL       (44)
 
 #define BOARD_TOUCH_IRQ     (21)
 #define BOARD_TOUCH_RST     (-1)

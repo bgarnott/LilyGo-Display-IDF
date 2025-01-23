@@ -5,4 +5,5 @@ idf_component_register(SRCS
     "initSequence.c"
     "power_driver.cpp"
     "lvgl_config.c"
+    "esp_now_config.c"
     INCLUDE_DIRS ".")

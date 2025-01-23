@@ -67,4 +67,8 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "Start Button thread");
     button_go();
+
+    ESP_LOGI(TAG, "Start joystick thread");
+    i2c_drv_scan();
+    joystick_go();
 }

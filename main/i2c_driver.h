@@ -15,7 +15,10 @@ extern "C" {
 #endif
 
 esp_err_t i2c_driver_init(void);
+
 void i2c_drv_scan();
+
+void joystick_go(void);
 
 extern i2c_master_bus_handle_t bus_handle;
 #ifdef __cplusplus
