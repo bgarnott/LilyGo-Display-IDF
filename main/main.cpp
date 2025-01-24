@@ -27,14 +27,16 @@
 #include "product_pins.h"
 #include "lv_examples.h"
 #include "lvgl_config.h"
+#include "joystick_config.h"
 
 
 static const char *TAG = "main";
 
 extern "C" void app_main(void)
 {
+    i2c_master_bus_handle_t i2c_bus;
     ESP_LOGI(TAG, "------ Initialize I2C.");
-    i2c_driver_init();
+    ESP_ERROR_CHECK(i2c_driver_init(&i2c_bus));
 
     ESP_LOGI(TAG, "------ Initialize PMU.");
     if (!power_driver_init()) {
@@ -69,6 +71,10 @@ extern "C" void app_main(void)
     button_go();
 
     ESP_LOGI(TAG, "Start joystick thread");
-    i2c_drv_scan();
-    joystick_go();
+    i2c_drv_scan(&i2c_bus);
+    joystick_go(&i2c_bus);
+    while(1)
+    {
+        vTaskDelay(1000);
+    }   
 }

@@ -14,13 +14,10 @@
 extern "C" {
 #endif
 
-esp_err_t i2c_driver_init(void);
+esp_err_t i2c_driver_init(i2c_master_bus_handle_t *bus_handle);
 
-void i2c_drv_scan();
+void i2c_drv_scan(i2c_master_bus_handle_t *bus_handle);
 
-void joystick_go(void);
-
-extern i2c_master_bus_handle_t bus_handle;
 #ifdef __cplusplus
 }
 #endif

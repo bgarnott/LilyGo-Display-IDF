@@ -6,4 +6,5 @@ idf_component_register(SRCS
     "power_driver.cpp"
     "lvgl_config.c"
     "esp_now_config.c"
+    "joystick_config.c"
     INCLUDE_DIRS ".")

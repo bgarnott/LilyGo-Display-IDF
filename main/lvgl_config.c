@@ -19,6 +19,7 @@
 #include "product_pins.h"
 #include "driver/gpio.h"
 #include "lvgl_config.h"
+#include "joystick_config.h"
 
 #define LVGL_TICK_PERIOD_MS 1
 #define LVGL_TASK_MAX_DELAY_MS 500
@@ -28,11 +29,19 @@
 
 static const char *TAG = "lvgl_config";
 
-static button_struct_t button_state;
+//static button_struct_t button_state;
 
 static lv_indev_t * indev_keypad;
 
-static lv_indev_drv_t indev_drv;
+static lv_indev_t * indev_button_up;
+
+static lv_indev_t * indev_button_down;
+
+static lv_indev_drv_t indev_keypad_drv;
+
+static lv_indev_drv_t indev_button_up_drv;
+
+static lv_indev_drv_t indev_button_down_drv;
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
@@ -106,17 +115,17 @@ static void button_task(void *arg)
         
         if (!but1)
         {
-            button_state.pressed = LV_INDEV_STATE_PRESSED;
-            button_state.key = LV_KEY_ENTER;
+            //button_state.pressed = LV_INDEV_STATE_PRESSED;
+            //button_state.key = LV_KEY_ENTER;
         }
         else if (!but2)
         {
-            button_state.pressed = LV_INDEV_STATE_PRESSED;
-            button_state.key = LV_KEY_NEXT;
+            //button_state.pressed = LV_INDEV_STATE_PRESSED;
+            //button_state.key = LV_KEY_NEXT;
         }
         else
         {
-            button_state.pressed = LV_INDEV_STATE_RELEASED;
+            //button_state.pressed = LV_INDEV_STATE_RELEASED;
         }
         gpio_set_level(GPIO_NUM_38, x%2);
         x++;
@@ -139,16 +148,90 @@ void button_config(void)
 
 void keypad_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 {
-    data->key = button_state.key;      
-    data->state = button_state.pressed;
+    joystick_struct_t joystick_state = joystick_get_state();
+
+    if (joystick_state.pressed)
+    {
+        data->key = LV_KEY_ENTER;
+        data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG, "Enter");
+    }
+    else if (joystick_state.x > 200)
+    {
+        data->key = LV_KEY_NEXT;
+        data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG, "Next");
+    }
+    else if (joystick_state.x < 50)
+    {
+        data->key = LV_KEY_PREV;
+        data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG, "Prev");
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+}
+
+void button_up_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
+{
+    joystick_struct_t joystick_state = joystick_get_state();
+
+    if (joystick_state.y < 50)
+    {
+        data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG, "UP");
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+}
+
+void button_down_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
+{
+    joystick_struct_t joystick_state = joystick_get_state();
+
+    if (joystick_state.y > 200)
+    {
+        data->state = LV_INDEV_STATE_PRESSED;
+        ESP_LOGI(TAG, "DOWN");
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
 }
 
 void config_keypad(void)
 {
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = keypad_read;
-    indev_keypad = lv_indev_drv_register(&indev_drv);
+    lv_indev_drv_init(&indev_keypad_drv);
+    indev_keypad_drv.type = LV_INDEV_TYPE_KEYPAD;
+    indev_keypad_drv.read_cb = keypad_read;
+    indev_keypad = lv_indev_drv_register(&indev_keypad_drv);
+}
+
+void config_up_button(void)
+{
+    static const lv_point_t points_array[] = {{100,30}};
+
+    lv_indev_drv_init(&indev_button_up_drv);
+    indev_button_up_drv.type = LV_INDEV_TYPE_BUTTON;
+    indev_button_up_drv.read_cb = button_up_read;
+    indev_button_up = lv_indev_drv_register(&indev_button_up_drv);
+    lv_indev_set_button_points(indev_button_up, points_array);
+}
+
+void config_down_button(void)
+{
+    static const lv_point_t points_array[] = {{100,480}};
+
+    lv_indev_drv_init(&indev_button_down_drv);
+    indev_button_down_drv.type = LV_INDEV_TYPE_BUTTON;
+    indev_button_down_drv.read_cb = button_down_read;
+    indev_button_down = lv_indev_drv_register(&indev_button_down_drv);
+    lv_indev_set_button_points(indev_button_down, points_array);
 }
 
 void lvgl_config(void)
@@ -173,6 +256,8 @@ void lvgl_config(void)
     //disp_drv.rotated =  LV_DISP_ROT_90;
     lv_disp_drv_register(&disp_drv);
     config_keypad();
+    config_up_button();
+    config_down_button();
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
@@ -200,11 +285,6 @@ void lvgl_go(void)
 void button_go(void)
 {
     xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
-}
-
-button_struct_t get_button_state()
-{
-    return button_state;
 }
 
 static void btn_event_cb(lv_event_t * e)
@@ -284,7 +364,7 @@ void config_gui(void)
         lv_obj_t * label = lv_label_create(btn);
         lv_label_set_text(label, "Up");
         lv_obj_center(label);
-        lv_group_add_obj(group_array[i], btn);
+        //lv_group_add_obj(group_array[i], btn);
 
         btn = lv_btn_create(screen_array[i]); 
         lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 2, 1,
@@ -312,7 +392,7 @@ void config_gui(void)
         label = lv_label_create(btn);
         lv_label_set_text(label, "Down");
         lv_obj_center(label);
-        lv_group_add_obj(group_array[i], btn);
+        //lv_group_add_obj(group_array[i], btn);
         
     }
 
