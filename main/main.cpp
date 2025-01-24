@@ -28,6 +28,7 @@
 #include "lv_examples.h"
 #include "lvgl_config.h"
 #include "joystick_config.h"
+#include "relay_config.h"
 
 
 static const char *TAG = "main";
@@ -71,10 +72,19 @@ extern "C" void app_main(void)
     button_go();
 
     ESP_LOGI(TAG, "Start joystick thread");
-    i2c_drv_scan(&i2c_bus);
+    ///i2c_drv_scan(&i2c_bus);
     joystick_go(&i2c_bus);
+
+    ESP_LOGI(TAG, "Configure relay");
+    i2c_master_dev_handle_t dev_handle;
+    relay_config(&i2c_bus, &dev_handle);
+
     while(1)
     {
-        vTaskDelay(1000);
+        relay_toggle(&dev_handle, 1);
+        relay_toggle(&dev_handle, 2);
+        relay_toggle(&dev_handle, 3);
+        relay_toggle(&dev_handle, 4);
+        vTaskDelay(100);
     }   
 }

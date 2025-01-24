@@ -7,4 +7,5 @@ idf_component_register(SRCS
     "lvgl_config.c"
     "esp_now_config.c"
     "joystick_config.c"
+    "relay_config.c"
     INCLUDE_DIRS ".")
