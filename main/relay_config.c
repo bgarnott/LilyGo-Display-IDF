@@ -43,7 +43,9 @@ enum RELAY_COMMANDS
 
 static const char *TAG = "relay_config";
 
-void relay_config(i2c_master_bus_handle_t *bus_handle, i2c_master_dev_handle_t *dev_handle)
+static i2c_master_dev_handle_t dev_handle;
+
+void relay_config(i2c_master_bus_handle_t *bus_handle)
 {
     ESP_LOGI(TAG, "Starting relay config");
     
@@ -52,11 +54,11 @@ void relay_config(i2c_master_bus_handle_t *bus_handle, i2c_master_dev_handle_t *
         .device_address = 0x6d,
         .scl_speed_hz = I2C_MASTER_FREQ_HZ
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(*bus_handle, &dev_config, dev_handle));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(*bus_handle, &dev_config, &dev_handle));
 }
 
 
-void relay_toggle(i2c_master_dev_handle_t *dev_handle, uint8_t relay)
+void relay_toggle(uint8_t relay)
 {
     uint8_t write_data;
 
@@ -78,5 +80,87 @@ void relay_toggle(i2c_master_dev_handle_t *dev_handle, uint8_t relay)
             return;
     }
 
-    ESP_ERROR_CHECK(i2c_master_transmit(*dev_handle, &write_data, 1, 1000));
+    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, &write_data, 1, 1000));
 }
+
+void relay_on(uint8_t relay)
+{
+    uint8_t status;
+    uint8_t command;
+
+    ESP_LOGI(TAG, "Turning on relay %d", relay);
+
+    if (relay == 1)
+        command = RELAY_ONE_STATUS;
+    else if (relay == 2)
+        command = RELAY_TWO_STATUS;
+    else if (relay == 3)
+        command = RELAY_THREE_STATUS;
+    else if (relay == 4)
+        command = RELAY_FOUR_STATUS;
+  
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, &command, 1, &status, 1, 1000));
+
+    ESP_LOGI(TAG, "status of relay %d is %d", relay, status);
+
+    if (status == 0)
+        relay_toggle(relay);
+
+}
+
+void relay_off(uint8_t relay)
+{
+    uint8_t status;
+    uint8_t command;
+
+    ESP_LOGI(TAG, "Turning off relay %d", relay);
+
+    if (relay == 1)
+        command = RELAY_ONE_STATUS;
+    else if (relay == 2)
+        command = RELAY_TWO_STATUS;
+    else if (relay == 3)
+        command = RELAY_THREE_STATUS;
+    else if (relay == 4)
+        command = RELAY_FOUR_STATUS;
+  
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, &command, 1, &status, 1, 1000));
+
+    ESP_LOGI(TAG, "status of relay %d is %d", relay, status);
+
+    if (status == 15)
+        relay_toggle(relay);
+
+}
+
+void crane_down()
+{
+    relay_on(1);
+    relay_on(2);
+    relay_off(3);
+
+}
+
+void crane_up()
+{
+    relay_on(1);
+    relay_off(2);
+    relay_on(3);
+}
+
+void crane_stop()
+{
+    relay_off(1);
+    relay_off(2);
+    relay_off(3);
+}
+
+void vacuum_on()
+{
+    relay_on(4);
+}
+
+void vacuum_off()
+{
+    relay_off(4);
+}   

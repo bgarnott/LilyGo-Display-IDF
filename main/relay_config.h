@@ -13,9 +13,23 @@
 extern "C" {
 #endif
 
-void relay_config(i2c_master_bus_handle_t *bus_handle, i2c_master_dev_handle_t *dev_handle);
+void relay_config(i2c_master_bus_handle_t *bus_handle);
 
-void relay_toggle(i2c_master_dev_handle_t *dev_handle, uint8_t relay);
+void relay_toggle(uint8_t relay);
+
+void relay_on(uint8_t relay);
+
+void relay_off(uint8_t relay);
+
+void crane_up();
+
+void crane_down();
+
+void crane_stop();
+
+void vacuum_on();
+
+void vacuum_off();
 
 #ifdef __cplusplus
 }

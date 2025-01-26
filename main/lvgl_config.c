@@ -20,6 +20,7 @@
 #include "driver/gpio.h"
 #include "lvgl_config.h"
 #include "joystick_config.h"
+#include "relay_config.h"
 
 #define LVGL_TICK_PERIOD_MS 1
 #define LVGL_TASK_MAX_DELAY_MS 500
@@ -287,21 +288,65 @@ void button_go(void)
     xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
 }
 
-static void btn_event_cb(lv_event_t * e)
+static void btn_down_event_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * btn = lv_event_get_target(e);
 
-    if(code == LV_EVENT_PRESSING) {
-        static uint8_t cnt = 0;
-        cnt++;
-
-        /*Get the first child of the button which is the label and change its text*/
-        lv_obj_t * label = lv_obj_get_child(btn, 0);
-        lv_label_set_text_fmt(label, "Button: %d", cnt);
+    if(code == LV_EVENT_PRESSING) 
+    {
+        crane_down();
+    }
+    else if(code == LV_EVENT_PRESS_LOST) 
+    {
+        crane_stop();
+    }
+    else if(code == LV_EVENT_RELEASED) 
+    {
+        crane_stop();
     }
 }
 
+static void btn_up_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * btn = lv_event_get_target(e);
+
+    if(code == LV_EVENT_PRESSING) 
+    {
+        crane_up();
+    }
+    else if(code == LV_EVENT_PRESS_LOST) 
+    {
+        crane_stop();
+    }
+    else if(code == LV_EVENT_RELEASED) 
+    {
+        crane_stop();
+    }
+}
+
+static void btn_vac_on_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * btn = lv_event_get_target(e);
+
+    if(code == LV_EVENT_PRESSING) 
+    {
+        vacuum_on();
+    }
+}
+
+static void btn_vac_off_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * btn = lv_event_get_target(e);
+
+    if(code == LV_EVENT_PRESSING) 
+    {
+        vacuum_off();
+    }
+}
 
 static void btn_next_screen_cb(lv_event_t * e)
 {
@@ -309,12 +354,12 @@ static void btn_next_screen_cb(lv_event_t * e)
 
     if(code == LV_EVENT_CLICKED) {
         current_screen ++;
-        lv_scr_load_anim(screen_array[current_screen % 4],LV_SCR_LOAD_ANIM_MOVE_LEFT,300,0,0);
+        lv_scr_load_anim(screen_array[current_screen % 2],LV_SCR_LOAD_ANIM_MOVE_LEFT,300,0,0);
 
         // need to set focus to the first button on the new screen
-        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%4], 1);
-        lv_group_set_default(group_array[current_screen%4]);
-        lv_indev_set_group(indev_keypad, group_array[current_screen%4]);
+        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%2], 1);
+        lv_group_set_default(group_array[current_screen%2]);
+        lv_indev_set_group(indev_keypad, group_array[current_screen%2]);
         lv_group_focus_obj(btn);
     }
 }
@@ -325,20 +370,20 @@ static void btn_previous_screen_cb(lv_event_t * e)
 
     if(code == LV_EVENT_CLICKED) {
         current_screen --;
-        lv_scr_load_anim(screen_array[current_screen % 4],LV_SCR_LOAD_ANIM_MOVE_RIGHT,300,0,0);
+        lv_scr_load_anim(screen_array[current_screen % 2],LV_SCR_LOAD_ANIM_MOVE_RIGHT,300,0,0);
 
         // need to set focus to the first button on the new screen
-        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%4], 2);
-        lv_group_set_default(group_array[current_screen%4]);
-        lv_indev_set_group(indev_keypad, group_array[current_screen%4]);
+        lv_obj_t * btn = lv_obj_get_child(screen_array[current_screen%2], 2);
+        lv_group_set_default(group_array[current_screen%2]);
+        lv_indev_set_group(indev_keypad, group_array[current_screen%2]);
         lv_group_focus_obj(btn);
     }
 }
 
 void config_gui(void)
 {
-    // create 4 screens
-    for (int i=0; i<4; i++)
+    // create 2 screens
+    for (int i=0; i<2; i++)
     {
         static lv_coord_t col_dsc[] = {75, 74, 75, LV_GRID_TEMPLATE_LAST};
         static lv_coord_t row_dsc[] = {60, 60, 60, 60, 60, 60, 60, 60, LV_GRID_TEMPLATE_LAST};
@@ -360,9 +405,19 @@ void config_gui(void)
         lv_obj_set_size(btn, 100, 50);
         lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
                              LV_GRID_ALIGN_STRETCH, 0, 1);
-        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
         lv_obj_t * label = lv_label_create(btn);
-        lv_label_set_text(label, "Up");
+        if (i == 0)
+        {
+            lv_label_set_text(label, "Up");
+            lv_obj_add_event_cb(btn, btn_up_event_cb, LV_EVENT_ALL, NULL);
+
+        }
+        else
+        {
+            lv_label_set_text(label, "Vac On");
+            lv_obj_add_event_cb(btn, btn_vac_on_event_cb, LV_EVENT_ALL, NULL);
+
+        }
         lv_obj_center(label);
         //lv_group_add_obj(group_array[i], btn);
 
@@ -388,9 +443,19 @@ void config_gui(void)
         lv_obj_set_size(btn, 100, 50);
         lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
                              LV_GRID_ALIGN_STRETCH, 7, 1);
-        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
         label = lv_label_create(btn);
-        lv_label_set_text(label, "Down");
+        if (i == 0)
+        {
+            lv_label_set_text(label, "Down");
+            lv_obj_add_event_cb(btn, btn_down_event_cb, LV_EVENT_ALL, NULL);
+
+        }
+        else
+        {
+            lv_label_set_text(label, "Vac Off");
+            lv_obj_add_event_cb(btn, btn_vac_off_event_cb, LV_EVENT_ALL, NULL);
+
+        }
         lv_obj_center(label);
         //lv_group_add_obj(group_array[i], btn);
         

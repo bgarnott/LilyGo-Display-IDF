@@ -76,15 +76,14 @@ extern "C" void app_main(void)
     joystick_go(&i2c_bus);
 
     ESP_LOGI(TAG, "Configure relay");
-    i2c_master_dev_handle_t dev_handle;
-    relay_config(&i2c_bus, &dev_handle);
+    relay_config(&i2c_bus);
 
     while(1)
     {
-        relay_toggle(&dev_handle, 1);
-        relay_toggle(&dev_handle, 2);
-        relay_toggle(&dev_handle, 3);
-        relay_toggle(&dev_handle, 4);
+        //relay_toggle(1);
+        //relay_toggle(2);
+        //relay_toggle(3);
+        //relay_toggle(4);
         vTaskDelay(100);
     }   
 }
