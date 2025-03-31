@@ -29,6 +29,7 @@
 #include "lvgl_config.h"
 #include "joystick_config.h"
 #include "relay_config.h"
+#include "sleep_config.h"
 
 
 static const char *TAG = "main";
@@ -72,11 +73,14 @@ extern "C" void app_main(void)
     button_go();
 
     ESP_LOGI(TAG, "Start joystick thread");
-    ///i2c_drv_scan(&i2c_bus);
+    //i2c_drv_scan(&i2c_bus);
     joystick_go(&i2c_bus);
 
     ESP_LOGI(TAG, "Configure relay");
     relay_config(&i2c_bus);
+
+    ESP_LOGI(TAG, "Configure sleep");
+    sleep_config();
 
     while(1)
     {

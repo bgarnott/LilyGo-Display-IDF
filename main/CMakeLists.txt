@@ -8,4 +8,5 @@ idf_component_register(SRCS
     "esp_now_config.c"
     "joystick_config.c"
     "relay_config.c"
+    "sleep_config.c"
     INCLUDE_DIRS ".")

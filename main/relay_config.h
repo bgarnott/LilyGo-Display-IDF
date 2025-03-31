@@ -31,6 +31,12 @@ void vacuum_on();
 
 void vacuum_off();
 
+void crowd_up();
+
+void crowd_down();
+
+void crowd_stop();
+
 #ifdef __cplusplus
 }
 #endif
