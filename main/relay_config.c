@@ -21,116 +21,84 @@
 
 #define I2C_MASTER_FREQ_HZ          400000      /*!< I2C master clock frequency */
 
-enum RELAY_COMMANDS
-{
-
-    TOGGLE_RELAY_ONE = 0x01,
-    TOGGLE_RELAY_TWO,
-    TOGGLE_RELAY_THREE,
-    TOGGLE_RELAY_FOUR,
-    RELAY_ONE_STATUS,
-    RELAY_TWO_STATUS,
-    RELAY_THREE_STATUS,
-    RELAY_FOUR_STATUS,
-    TURN_ALL_OFF = 0xA,
-    TURN_ALL_ON,
-    TOGGLE_ALL,
-    RELAY_ONE_PWM = 0x10,
-    RELAY_TWO_PWM,
-    RELAY_THREE_PWM,
-    RELAY_FOUR_PWM
-};
 
 static const char *TAG = "relay_config";
-
-static i2c_master_dev_handle_t dev_handle;
-
-void relay_config(i2c_master_bus_handle_t *bus_handle)
+/**
+ * @brief Configure GPIO pins for relays
+ */
+void relay_config(void)
 {
-    ESP_LOGI(TAG, "Starting relay config");
+    gpio_config_t io_conf;
     
-    i2c_device_config_t dev_config = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = 0x6d,
-        .scl_speed_hz = I2C_MASTER_FREQ_HZ
-    };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(*bus_handle, &dev_config, &dev_handle));
-}
-
-
-void relay_toggle(uint8_t relay)
-{
-    uint8_t write_data;
-
-    switch (relay)
-    {
-        case 1:
-            write_data = TOGGLE_RELAY_ONE;
-            break;
-        case 2:
-            write_data = TOGGLE_RELAY_TWO;
-            break;
-        case 3: 
-            write_data = TOGGLE_RELAY_THREE;
-            break;
-        case 4:
-            write_data = TOGGLE_RELAY_FOUR;
-            break;      
-        default:
-            return;
-    }
-
-    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, &write_data, 1, 1000));
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = 
+          (1ULL << RELAY1_GPIO) 
+        | (1ULL << RELAY2_GPIO) 
+        | (1ULL << RELAY3_GPIO) 
+        | (1ULL << RELAY4_GPIO)
+//        | (1ULL << RELAY5_GPIO);
+//        | (1ULL << RELAY6_GPIO)
+        | (1ULL << RELAY7_GPIO)
+        | (1ULL << RELAY8_GPIO);
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+    ESP_LOGI(TAG, "Relay GPIOs configured: %d, %d, %d, %d, %d, %d, %d, %d",
+             RELAY1_GPIO, RELAY2_GPIO, RELAY3_GPIO, RELAY4_GPIO,
+             RELAY5_GPIO, RELAY6_GPIO, RELAY7_GPIO, RELAY8_GPIO);    
 }
 
 void relay_on(uint8_t relay)
 {
-    uint8_t status;
-    uint8_t command;
+    uint32_t gpio_num = 0;
 
-    ESP_LOGI(TAG, "Turning on relay %d", relay);
+    switch (relay) {
+        case 1:
+            gpio_num = RELAY1_GPIO;
+            break;
+        case 2:
+            gpio_num = RELAY2_GPIO;
+            break;
+        case 3:
+            gpio_num = RELAY3_GPIO;
+            break;
+        case 4:
+            gpio_num = RELAY4_GPIO;
+            break;
+        default:
+            ESP_LOGW(TAG, "Invalid relay number: %d", relay);
+            return;
+    }
 
-    if (relay == 1)
-        command = RELAY_ONE_STATUS;
-    else if (relay == 2)
-        command = RELAY_TWO_STATUS;
-    else if (relay == 3)
-        command = RELAY_THREE_STATUS;
-    else if (relay == 4)
-        command = RELAY_FOUR_STATUS;
-  
-    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, &command, 1, &status, 1, 1000));
-
-    ESP_LOGI(TAG, "status of relay %d is %d", relay, status);
-
-    if (status == 0)
-        relay_toggle(relay);
-
+    gpio_set_level(gpio_num, 1);
+    ESP_LOGI(TAG, "Relay %d (GPIO %d) set to ON", relay, gpio_num);
 }
 
 void relay_off(uint8_t relay)
 {
-    uint8_t status;
-    uint8_t command;
+    uint32_t gpio_num = 0;
 
-    ESP_LOGI(TAG, "Turning off relay %d", relay);
+    switch (relay) {
+        case 1:
+            gpio_num = RELAY1_GPIO;
+            break;
+        case 2:
+            gpio_num = RELAY2_GPIO;
+            break;
+        case 3:
+            gpio_num = RELAY3_GPIO;
+            break;
+        case 4:
+            gpio_num = RELAY4_GPIO;
+            break;
+        default:
+            ESP_LOGW(TAG, "Invalid relay number: %d", relay);
+            return;
+    }
 
-    if (relay == 1)
-        command = RELAY_ONE_STATUS;
-    else if (relay == 2)
-        command = RELAY_TWO_STATUS;
-    else if (relay == 3)
-        command = RELAY_THREE_STATUS;
-    else if (relay == 4)
-        command = RELAY_FOUR_STATUS;
-  
-    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, &command, 1, &status, 1, 1000));
-
-    ESP_LOGI(TAG, "status of relay %d is %d", relay, status);
-
-    if (status == 15)
-        relay_toggle(relay);
-
+    gpio_set_level(gpio_num, 0);
+    ESP_LOGI(TAG, "Relay %d (GPIO %d) set to OFF", relay, gpio_num);
 }
 
 void crane_down()
@@ -138,6 +106,7 @@ void crane_down()
     relay_on(1);
     relay_on(2);
     relay_off(3);
+    ESP_LOGI(TAG, "Crane down");
 
 }
 
@@ -146,6 +115,7 @@ void crane_up()
     relay_on(1);
     relay_off(2);
     relay_on(3);
+    ESP_LOGI(TAG, "Crowd up");
 }
 
 void crane_stop()
@@ -153,16 +123,17 @@ void crane_stop()
     relay_off(1);
     relay_off(2);
     relay_off(3);
+    ESP_LOGI(TAG, "Crowd stop");
 }
 
 void vacuum_on()
 {
-    relay_on(4);
+//    relay_on(4);
 }
 
 void vacuum_off()
 {
-    relay_off(4);
+//    relay_off(4);
 }   
 
 void crowd_down()
