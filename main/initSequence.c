@@ -512,7 +512,7 @@ const lcd_cmd_t rm67162_cmd[RM67162_INIT_SEQUENCE_LENGHT] = {
     {0x5100, {0x00}, 0x01}, // Write Display Brightness MAX_VAL=0XFF
     {0x2900, {0x00}, 0x01}, // Display on
     {0x5100, {AMOLED_DEFAULT_BRIGHTNESS}, 0x01}, // Write Display Brightness   MAX_VAL=0XFF
-    {0x3600, {0x00}, 0x01}, // Barno: Fixed this to be portrait mode. 
+    {0x3600, {0xC0}, 0x01}, // Barno: Fixed this to be portrait mode. 
     //{0x3600, {0x60}, 0x01}, // Barno: this is landscape mode (need to also swap width and height in lvgl driver init)
 };
 
