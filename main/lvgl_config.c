@@ -182,7 +182,7 @@ void button_up_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 {
     joystick_struct_t joystick_state = joystick_get_state();
 
-    if (joystick_state.y < 50)
+    if (joystick_state.y > 200)
     {
         data->state = LV_INDEV_STATE_PRESSED;
         ESP_LOGI(TAG, "UP");
@@ -197,7 +197,7 @@ void button_down_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 {
     joystick_struct_t joystick_state = joystick_get_state();
 
-    if (joystick_state.y > 200)
+    if (joystick_state.y < 50)
     {
         data->state = LV_INDEV_STATE_PRESSED;
         ESP_LOGI(TAG, "DOWN");
