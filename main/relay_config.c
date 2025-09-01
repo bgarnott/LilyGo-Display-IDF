@@ -37,16 +37,20 @@ void relay_config(void)
         | (1ULL << RELAY2_GPIO) 
         | (1ULL << RELAY3_GPIO) 
         | (1ULL << RELAY4_GPIO)
-//        | (1ULL << RELAY5_GPIO);
-//        | (1ULL << RELAY6_GPIO)
+//        | (1ULL << RELAY5_GPIO);  BARNO: this is UART 0. Cannot use it for relays
+//        | (1ULL << RELAY6_GPIO)  BARNO: this is UART 0. Cannot use it for relays
         | (1ULL << RELAY7_GPIO)
         | (1ULL << RELAY8_GPIO);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     gpio_config(&io_conf);
-    ESP_LOGI(TAG, "Relay GPIOs configured: %d, %d, %d, %d, %d, %d, %d, %d",
+    ESP_LOGI(TAG, "Relay GPIOs configured: %d, %d, %d, %d, %d, %d",
              RELAY1_GPIO, RELAY2_GPIO, RELAY3_GPIO, RELAY4_GPIO,
-             RELAY5_GPIO, RELAY6_GPIO, RELAY7_GPIO, RELAY8_GPIO);    
+             RELAY7_GPIO, RELAY8_GPIO); 
+    crane_stop(); // Ensure all relays are off on startup
+    vacuum_off(); // Ensure vacuum is off on startup
+    crowd_stop(); // Ensure crowd control relays are off on startup
+    ESP_LOGI(TAG, "Relays initialized to OFF state");
 }
 
 void relay_on(uint8_t relay)
@@ -66,12 +70,18 @@ void relay_on(uint8_t relay)
         case 4:
             gpio_num = RELAY4_GPIO;
             break;
+        case 7:
+            gpio_num = RELAY7_GPIO;      
+            break;
+        case 8:
+            gpio_num = RELAY8_GPIO;
+            break;
         default:
             ESP_LOGW(TAG, "Invalid relay number: %d", relay);
             return;
     }
 
-    gpio_set_level(gpio_num, 1);
+    gpio_set_level(gpio_num, 0);
     ESP_LOGI(TAG, "Relay %d (GPIO %d) set to ON", relay, gpio_num);
 }
 
@@ -92,12 +102,18 @@ void relay_off(uint8_t relay)
         case 4:
             gpio_num = RELAY4_GPIO;
             break;
+        case 7:
+            gpio_num = RELAY7_GPIO;
+            break;
+        case 8:
+            gpio_num = RELAY8_GPIO;
+            break;
         default:
             ESP_LOGW(TAG, "Invalid relay number: %d", relay);
             return;
     }
 
-    gpio_set_level(gpio_num, 0);
+    gpio_set_level(gpio_num, 1);
     ESP_LOGI(TAG, "Relay %d (GPIO %d) set to OFF", relay, gpio_num);
 }
 
@@ -115,7 +131,7 @@ void crane_up()
     relay_on(1);
     relay_off(2);
     relay_on(3);
-    ESP_LOGI(TAG, "Crowd up");
+    ESP_LOGI(TAG, "Crane up");
 }
 
 void crane_stop()
@@ -123,30 +139,38 @@ void crane_stop()
     relay_off(1);
     relay_off(2);
     relay_off(3);
-    ESP_LOGI(TAG, "Crowd stop");
+    ESP_LOGI(TAG, "Crane stop");
 }
 
 void vacuum_on()
 {
-//    relay_on(4);
+    ESP_LOGI(TAG, "Vacuum on");
+     relay_on(4);
 }
 
 void vacuum_off()
-{
-//    relay_off(4);
+{   
+    ESP_LOGI(TAG, "Vacuum off");
+     relay_off(4);
 }   
 
 void crowd_down()
 {
     ESP_LOGI(TAG, "Crowd down");
+    relay_on(7);
+    relay_off(8);    
 }
 
 void crowd_up()
 {
     ESP_LOGI(TAG, "Crowd up");
+    relay_off(7);
+    relay_on(8);
 }
 
 void crowd_stop()
 {
     ESP_LOGI(TAG, "Crowd stop");
+    relay_off(7);
+    relay_off(8);
 }
