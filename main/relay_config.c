@@ -154,16 +154,16 @@ void vacuum_off()
      relay_off(4);
 }   
 
-void crowd_down()
+void crowd_up()
 {
-    ESP_LOGI(TAG, "Crowd down");
+    ESP_LOGI(TAG, "Crowd up");
     relay_on(7);
     relay_off(8);    
 }
 
-void crowd_up()
+void crowd_down()
 {
-    ESP_LOGI(TAG, "Crowd up");
+    ESP_LOGI(TAG, "Crowd down");
     relay_off(7);
     relay_on(8);
 }
