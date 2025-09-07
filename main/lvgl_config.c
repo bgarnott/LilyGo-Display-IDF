@@ -45,6 +45,9 @@ static lv_indev_drv_t indev_button_left_drv;
 static lv_indev_drv_t indev_button_middle_drv;
 static lv_indev_drv_t indev_button_right_drv;
 
+static lv_obj_t* background_obj;
+
+
 static SemaphoreHandle_t lvgl_mux = NULL;
 
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
@@ -151,7 +154,7 @@ void joystick_button_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
     if (joystick_state.pressed)
     {
         data->state = LV_INDEV_STATE_PRESSED;
-        ESP_LOGI(TAG, "Enter");
+        ESP_LOGI(TAG, "VAC PRESSED");
     }
     else
     {
@@ -301,6 +304,7 @@ void lvgl_config(void)
     config_down_button();
     config_left_button();
     config_right_button();
+    config_middle_button(); 
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
@@ -410,7 +414,6 @@ static void btn_vac_on_event_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * btn = lv_event_get_target(e);
-    lv_obj_t *parent = lv_obj_get_parent(btn);
 
     if(code == LV_EVENT_LONG_PRESSED) 
     {
@@ -418,13 +421,13 @@ static void btn_vac_on_event_cb(lv_event_t * e)
         {
             vac_on = 0;
             vacuum_off();
-            lv_obj_set_style_bg_color(parent, lv_color_hex(LV_PALETTE_GREY), 0); // Set parent background to gray
+            lv_obj_set_style_bg_color(background_obj, lv_palette_lighten(LV_PALETTE_GREY, 3), 0);
         }
         else
         {
             vac_on = 1;
             vacuum_on();
-            lv_obj_set_style_bg_color(parent, lv_color_hex(LV_PALETTE_RED), 0); // Set parent background to red
+            lv_obj_set_style_bg_color(background_obj, lv_palette_main(LV_PALETTE_RED), 0);
         }
     }
 }
@@ -456,18 +459,18 @@ void config_gui(void)
     static lv_coord_t col_dsc[] = {75, 74, 75, LV_GRID_TEMPLATE_LAST};
     static lv_coord_t row_dsc[] = {60, 60, 60, 60, 60, 60, 60, 60, LV_GRID_TEMPLATE_LAST};
 
-    lv_obj_t * obj = lv_obj_create(NULL);
-    lv_obj_set_size(obj, AMOLED_WIDTH, AMOLED_HEIGHT);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(LV_PALETTE_GREY), 0);
+    background_obj = lv_obj_create(NULL);
+    lv_obj_set_size(background_obj, AMOLED_WIDTH, AMOLED_HEIGHT);
+    lv_obj_set_style_bg_color(background_obj, lv_palette_lighten(LV_PALETTE_GREY, 3), 0);
 
     /*Create a container with grid*/
-    lv_obj_set_style_grid_column_dsc_array(obj, col_dsc, 0);
-    lv_obj_set_style_grid_row_dsc_array(obj, row_dsc, 0);
-    lv_obj_center(obj);
-    lv_obj_set_layout(obj, LV_LAYOUT_GRID);
+    lv_obj_set_style_grid_column_dsc_array(background_obj, col_dsc, 0);
+    lv_obj_set_style_grid_row_dsc_array(background_obj, row_dsc, 0);
+    lv_obj_center(background_obj);
+    lv_obj_set_layout(background_obj, LV_LAYOUT_GRID);
 
     // create the top button on the screen
-    lv_obj_t * btn = lv_btn_create(obj);
+    lv_obj_t * btn = lv_btn_create(background_obj);
     lv_obj_set_size(btn, 100, 50);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
                          LV_GRID_ALIGN_STRETCH, 0, 1);
@@ -478,7 +481,7 @@ void config_gui(void)
 
 
     // create the right side button
-    btn = lv_btn_create(obj); 
+    btn = lv_btn_create(background_obj);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_add_event_cb(btn, btn_crowd_up_event_cb, LV_EVENT_ALL, NULL);
@@ -487,7 +490,7 @@ void config_gui(void)
     lv_obj_center(label);
 
     // create the left side button
-    btn = lv_btn_create(obj); 
+    btn = lv_btn_create(background_obj);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_add_event_cb(btn, btn_crowd_down_event_cb, LV_EVENT_ALL, NULL);
@@ -496,7 +499,7 @@ void config_gui(void)
     lv_obj_center(label);
 
     // create the middle button
-    btn = lv_btn_create(obj); 
+    btn = lv_btn_create(background_obj);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
                          LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_add_event_cb(btn, btn_vac_on_event_cb, LV_EVENT_ALL, NULL);
@@ -505,7 +508,7 @@ void config_gui(void)
     lv_obj_center(label);
 
     // create the bottom button
-    btn = lv_btn_create(obj);
+    btn = lv_btn_create(background_obj);
     lv_obj_set_size(btn, 100, 50);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, 1, 1,
                          LV_GRID_ALIGN_STRETCH, 7, 1);
@@ -513,5 +516,5 @@ void config_gui(void)
     lv_label_set_text(label, "Down");
     lv_obj_add_event_cb(btn, btn_down_event_cb, LV_EVENT_ALL, NULL);
     lv_obj_center(label);
-    lv_scr_load(obj);
+    lv_scr_load(background_obj);
 }
