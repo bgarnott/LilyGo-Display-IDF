@@ -80,8 +80,16 @@ void relay_on(uint8_t relay)
             ESP_LOGW(TAG, "Invalid relay number: %d", relay);
             return;
     }
+    
+    if ((relay == 2) || (relay == 3))
+    {
+        gpio_set_level(gpio_num, 1); // Active high for these relays
+    }
+    else
+    {
+        gpio_set_level(gpio_num, 0); // Active low for these relays
+    }
 
-    gpio_set_level(gpio_num, 0);
     ESP_LOGI(TAG, "Relay %d (GPIO %d) set to ON", relay, gpio_num);
 }
 
@@ -113,7 +121,15 @@ void relay_off(uint8_t relay)
             return;
     }
 
-    gpio_set_level(gpio_num, 1);
+
+    if ((relay== 2) || (relay == 3))
+    {
+        gpio_set_level(gpio_num, 0); // Active high for these relays
+    }
+    else
+    {
+        gpio_set_level(gpio_num, 1); // Active low for these relays
+    }
     ESP_LOGI(TAG, "Relay %d (GPIO %d) set to OFF", relay, gpio_num);
 }
 
