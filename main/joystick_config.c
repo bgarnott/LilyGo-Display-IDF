@@ -89,5 +89,5 @@ joystick_struct_t joystick_get_state(void)
 
 void joystick_go(i2c_master_bus_handle_t *bus)
 {
-    xTaskCreate(joystick_task, "JOYSTICK", 4*1024, bus, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(joystick_task, "JOYSTICK", 4*1024, bus, tskIDLE_PRIORITY + 1, NULL);
 }

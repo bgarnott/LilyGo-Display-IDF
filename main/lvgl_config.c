@@ -325,13 +325,13 @@ void lvgl_config(void)
 
 void lvgl_go(void)
 {
-    xTaskCreate(lvgl_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(lvgl_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 
 }
 
 void button_go(void)
 {
-    xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(button_task, "BUTTON", LVGL_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 }
 
 static void btn_down_event_cb(lv_event_t * e)

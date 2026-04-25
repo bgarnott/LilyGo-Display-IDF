@@ -3,5 +3,6 @@
         "board/esp32s3-builtin.cfg"
     ],
     "idf.port": "/dev/tty.usbmodem2101",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "idf.currentSetup": "/Users/barno/esp/esp-idf"
 }
